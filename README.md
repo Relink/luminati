@@ -1,17 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#Luminati">Luminati</a></dt>
-<dd></dd>
-</dl>
-
-## Typedefs
-
-<dl>
-<dt><a href="#LuminatiConfig">LuminatiConfig</a> : <code>Object</code></dt>
-<dd></dd>
-</dl>
-
 <a name="Luminati"></a>
 ## Luminati
 **Kind**: global class  
