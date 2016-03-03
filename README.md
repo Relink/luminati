@@ -18,7 +18,7 @@
 
 * [Luminati](#Luminati)
     * [new Luminati(config)](#new_Luminati_new)
-    * [.getProxy()](#Luminati+getProxy) ⇒ <code>String</code>
+    * [.getProxy()](#Luminati+getProxy) ⇒ <code>Promise</code>
 
 <a name="new_Luminati_new"></a>
 ### new Luminati(config)
@@ -30,11 +30,14 @@ Luminati!!
 | config | <code>[LuminatiConfig](#LuminatiConfig)</code> | 
 
 <a name="Luminati+getProxy"></a>
-### luminati.getProxy() ⇒ <code>String</code>
+### luminati.getProxy() ⇒ <code>Promise</code>
 getProxy is what you call every time you need a new exit node.
 
 **Kind**: instance method of <code>[Luminati](#Luminati)</code>  
-**Returns**: <code>String</code> - This is the entire string used as "host" when
+**Returns**: <code>Promise</code> - Returns promise that resolves with string to use as proxy in your
+net requests.
+Note: this promise will perform a DNS lookup the first time it is called, but after
+should resolve immediately. This is the entire string used as "host" when
 making http requests!  
 **Example**  
 ```js
@@ -43,7 +46,7 @@ var Luminati = require('luminati');
 
 var luminati = new Luminati({
   username: 'myusername-zone-myzone',
-  password: 'mypassword
+  password: 'mypassword'
 });
 
 luminati.getProxy().then(proxy => {
@@ -62,7 +65,7 @@ luminati.getProxy().then(proxy => {
 | password | <code>String</code> |  | luminati password |
 | frequency | <code>Number</code> | <code>60000</code> | frequency, in ms, that you want to refresh the DNS of the super-proxy you are using. |
 | superProxyLocation | <code>String</code> | <code>gb</code> | country code to use for super proxy location. |
-| exitLocation | <code>String</code> |  | country code if you want exit node to be in a specific country. If not provided, will provide exit nodes in random countries. |
+| exitLocation | <code>String</code> | <code>false</code> | country code if you want exit node to be in a specific country. If not provided, will provide exit nodes in random countries. |
 | dnsResolution | <code>String</code> | <code>local</code> | can be 'local' or 'remote' - where the final url should have its DNS resolved, locally at the super proxy, or remotes at the exit node. |
 | https | <code>Boolean</code> | <code>false</code> | whether you want to use an https proxy url or not. |
 
