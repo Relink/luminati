@@ -1,0 +1,27 @@
+{
+  "name": "@relinklabs/luminati",
+  "version": "0.0.1",
+  "description": "```",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/.bin/mocha lib/**/*.spec.js",
+    "tdd": "node_modules/.bin/mocha lib/**/*.spec.js --watch --colors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Relink/luminati.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Relink/luminati/issues"
+  },
+  "homepage": "https://github.com/Relink/luminati#readme",
+  "dependencies": {
+    "bluebird": "^3.3.3"
+  },
+  "devDependencies": {
+    "nock": "^7.2.2",
+    "proxyquire": "^1.7.4"
+  }
+}

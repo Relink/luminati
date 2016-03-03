@@ -18,7 +18,7 @@
 
 * [Luminati](#Luminati)
     * [new Luminati(config)](#new_Luminati_new)
-    * [.getProxy()](#Luminati+getProxy) ⇒ <code>Promise</code>
+    * [.getProxy()](#Luminati+getProxy) ⇒ <code>String</code>
 
 <a name="new_Luminati_new"></a>
 ### new Luminati(config)
@@ -30,14 +30,11 @@ Luminati!!
 | config | <code>[LuminatiConfig](#LuminatiConfig)</code> | 
 
 <a name="Luminati+getProxy"></a>
-### luminati.getProxy() ⇒ <code>Promise</code>
+### luminati.getProxy() ⇒ <code>String</code>
 getProxy is what you call every time you need a new exit node.
 
 **Kind**: instance method of <code>[Luminati](#Luminati)</code>  
-**Returns**: <code>Promise</code> - Returns promise that resolves with string to use as proxy in your
-net requests.
-Note: this promise will perform a DNS lookup the first time it is called, but after
-should resolve immediately. This is the entire string used as "host" when
+**Returns**: <code>String</code> - This is the entire string used as "host" when
 making http requests!  
 **Example**  
 ```js
