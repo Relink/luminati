@@ -1,5 +1,3 @@
 var luminati = require('./lib/luminati');
 
-module.exports = {
-  getProxy: luminati.getProxy
-};
+module.exports = luminati.Luminati;
