@@ -5,7 +5,7 @@ var expect = chai.expect;
 var sinon = require('sinon');
 var nock = require('nock');
 var proxyquire = require('proxyquire');
-
+var Promise = require('bluebird');
 var lookupMock = sinon.stub();
 
 var luminati = proxyquire('./luminati', {
@@ -35,7 +35,7 @@ describe('luminati', () => {
 
          var time = 10000;
          var start = Date.now();
-         var host = luminati._host(time);
+         var host = luminati._host(time, true);
 
          lookupMock.callsArgWith(1, null, Promise.resolve('foo'));
 
@@ -53,7 +53,7 @@ describe('luminati', () => {
 
     it('it will resolve immediately if called after first interval', done => {
       var time = 20;
-      var host = luminati._host(time);
+      var host = luminati._host(time, true);
 
       var responses = ['foo', 'bar', 'baz'];
 
@@ -77,11 +77,16 @@ describe('luminati', () => {
     it('calls lookup with a string that takes into account country and id', () => {
 
       // NOTE: this is implicitly testing _getDomain
-      var host = luminati._host(10000, 'gb');
+      var host = luminati._host(10000, true, 'nl');
       host.get(1)
       expect(lookupMock.firstCall.args[0])
-        .to.equal('servercountry-gb-session-1.zproxy.luminati.io');
+        .to.equal('servercountry-nl-session-1.zproxy.luminati.io');
       host.cleanup();
+    });
+
+    it('does not call lookup when asked not to', () => {
+      var host = luminati._host(10, false);
+      expect(lookupMock).not.to.have.been.called;
     });
   });
 
@@ -89,7 +94,8 @@ describe('luminati', () => {
     it('returns a string with the user and password from config', done => {
       var config = {
         username: 'user',
-        password: 'secret'
+        password: 'secret',
+        cacheSuperProxy: true,
       }
 
       lookupMock.onCall(0).callsArgWith(1, null, Promise.resolve('qux'));
@@ -105,6 +111,43 @@ describe('luminati', () => {
         });
     });
 
+    it('does not lookup superProxy as a default', done => {
+       var config = {
+        username: 'user',
+        password: 'secret',
+      };
+
+      var lum = new luminati.Luminati(config);
+
+      lum.getProxy()
+        .then(proxy => {
+          expect(lookupMock).not.to.have.been.called;
+          expect(proxy).to.match(/zproxy\.luminati\.io/);
+          done();
+        })
+    });
+
+
+    it('ignores a user trying to cache if https is set to true', done => {
+       var config = {
+         username: 'user',
+         password: 'secret',
+         https: true,
+         cacheSuperProxy: true,
+         cacheTimeout: 10
+      };
+
+      var lum = new luminati.Luminati(config);
+
+      lum.getProxy()
+        .then(proxy => {
+          expect(lookupMock).not.to.have.been.called;
+          expect(proxy).to.match(/zproxy\.luminati\.io/);
+          done();
+        });
+    });
+
+
     it('reflects https, country, and dnsResolution options in final string', done => {
       var config = {
         username: 'user',
@@ -114,13 +157,15 @@ describe('luminati', () => {
         https: true
       };
 
-      lookupMock.onCall(0).callsArgWith(1, null, Promise.resolve('qux'));
       var lum = new luminati.Luminati(config);
 
       lum.getProxy()
         .then(proxy => {
           expect(proxy).to.match(/dns\-remote/);
-          expect(proxy).to.match(/country\-nl/)
+          expect(proxy).to.match(/country\-nl/);
+
+          // should not call lookup when https is true!
+          expect(lookupMock).not.to.have.been.called;
           lum.host.cleanup();
           done();
         });
@@ -130,7 +175,8 @@ describe('luminati', () => {
       var config = {
         username: 'user',
         password: 'secret',
-        superProxyLocation: 'nl'
+        superProxyLocation: 'nl',
+        cacheSuperProxy: true,
       };
 
       var lum = new luminati.Luminati(config);

@@ -16,20 +16,23 @@ function _getDomain (session_id, country) {
 }
 
 // Keeps track of latest IP for super proxy to use.
-function _host (interval, country) {
+function _host (interval, cache, country) {
   var host = false;
-
+  var stopInterval;
   // periodically resolve DNS fom zproxy, which will
   // give their currently fastest super proxies.
   // This also means we don't perform this DNS resolution
   // at call time.
-  var stopInterval = setInterval(() => {
-    var id = _makeSessionId();
-    lookup(_getDomain(id, country))
-      .then(_host => {
-        host = _host;
-      })
-  }, interval)
+
+  if (cache) {
+    stopInterval = setInterval(() => {
+      var id = _makeSessionId();
+      lookup(_getDomain(id, country))
+        .then(_host => {
+          host = _host;
+        })
+    }, interval);
+  };
 
   return {
 
@@ -40,8 +43,12 @@ function _host (interval, country) {
       if (host) {
         return Promise.resolve(host);
       };
-      // if we don't have a host, resolve one, and cache it!
-      return lookup(_getDomain(id, country))
+
+      var domain = _getDomain(id, country);
+      if (!cache) {
+        return Promise.resolve(domain);
+      };
+      return lookup(domain)
         .then(_host => {
           host = _host;
           return _host;
@@ -55,14 +62,17 @@ function _host (interval, country) {
  * @typedef {Object} LuminatiConfig
  * @property {String} username luminati username in the form USER-zone-ZONE
  * @property {String} password luminati password
- * @property {Number} [frequency = 60000] frequency, in ms, that you want to refresh the DNS
- * of the super-proxy you are using.
  * @property {String} [superProxyLocation = gb] country code to use for super proxy location.
  * @property {String} [exitLocation = false] country code if you want exit node to be in a specific
  * country. If not provided, will provide exit nodes in random countries.
  * @property {String} [dnsResolution = local] can be 'local' or 'remote' - where the final
  * url should have its DNS resolved, locally at the super proxy, or remotes at the exit node.
  * @property {Boolean} [https = false] whether you want to use an https proxy url or not.
+ * @property {Boolean} [cacheSuperProxy = false] whether or not to perform DNS lookup of
+ * super proxy and cache result. Automatically turned off when https is true.
+ * @property {Number} [cacheTimeout = 60000] frequency, in ms, that you want to refresh the
+ * cache of the super-proxy DNS, ignored if cacheSuperProxy is set to false or https is set
+ * to true.
  */
 
 
@@ -81,10 +91,11 @@ function Luminati (config) {
   this.country = config.exitLocation ? `-country-${config.exitLocation}` : '';
   this.user = `lum-customer-${config.username}${this.country}-${this.dns}`;
   this.s = config.https ? 's' : '';
+  this.cacheSuperProxy = this.s ? false : config.cacheSuperProxy;
 
   // Set the super proxy host to redo DNS lookup every 60 seconds.
-  var refresh = config.refresh || 60000;
-  this.host = _host(refresh, this.spCountry);
+  var refresh = config.cacheTimeout || 60000;
+  this.host = _host(refresh, this.cacheSuperProxy, this.spCountry);
 }
 
 Luminati.prototype._makeProxyString = function (host, id) {
